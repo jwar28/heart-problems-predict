@@ -26,7 +26,7 @@ Además, te proporcionamos imágenes informativas dependiendo del resultado de l
 tab_captura, tab_prediccion = st.tabs(['Captura de Datos', 'Predicción'])
 
 # Variables globales para almacenar los datos de entrada
-datos_usuario = ""
+datos_usuario = None
 
 with tab_captura:
     st.header("Captura de Datos")
@@ -38,7 +38,6 @@ with tab_captura:
     # Botón para guardar los datos de entrada
     if st.button("Guardar Datos"):
         # Crear un DataFrame con los datos ingresados
-        global datos_usuario
         datos_usuario = pd.DataFrame([[edad, colesterol]], columns=columnas)
         st.success("Datos guardados correctamente. Ahora puedes ir a la predicción.")
 
