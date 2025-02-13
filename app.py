@@ -26,7 +26,7 @@ Además, te proporcionamos imágenes informativas dependiendo del resultado de l
 tab_captura, tab_prediccion = st.tabs(['Captura de Datos', 'Predicción'])
 
 # Variables globales para almacenar los datos de entrada
-datos_usuario = None
+datos_usuario = ""
 
 with tab_captura:
     st.header("Captura de Datos")
