@@ -79,3 +79,8 @@ elif tabs == "Predicción":
             st.image(img, caption="Salud excelente", use_column_width=True)
     else:
         st.warning("Por favor, captura los datos de entrada en la pestaña 'Capturar Datos' antes de realizar la predicción.")
+
+# Footer con autor
+st.write("""
+- **Realizado por**: Jorge Vergel
+""")
