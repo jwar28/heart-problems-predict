@@ -1,66 +1,81 @@
 import streamlit as st
 import joblib
+import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.neighbors import KNeighborsClassifier
 from PIL import Image
+import requests
+from io import BytesIO
 
-# Cargar el modelo y el escalador desde los archivos guardados
+# Cargar el modelo y el escalador
 modelo_knn = joblib.load('modelo_knn.bin')
 escalador = joblib.load('escalador.bin')
 
-# Nombres de los features que el modelo espera
-columnas = ['edad', 'colesterol']
-
-# Título de la aplicación
-st.title('Asistente IA para Cardiólogos')
-
-# Introducción
+# Título y introducción
+st.title("Asistente IA para cardiólogos")
 st.write("""
-Este asistente utiliza un modelo de inteligencia artificial basado en KNN para predecir si una persona tiene o no problemas cardíacos. 
-Puedes ingresar la edad y el nivel de colesterol para obtener la predicción. 
-Además, te proporcionamos imágenes informativas dependiendo del resultado de la predicción.
+Este asistente de inteligencia artificial ha sido diseñado para predecir si una persona podría tener problemas cardíacos o no.
+La predicción se basa en datos de edad y colesterol. Introduzca los datos en la sección de capturar datos, luego seleccione la pestaña para hacer la predicción.
 """)
 
-# Crear dos tabs: uno para captura y otro para la predicción
-tab_captura, tab_prediccion = st.tabs(['Captura de Datos', 'Predicción'])
+# Pestaña de instrucciones
+with st.expander("Instrucciones de uso"):
+    st.write("""
+    - **Edad**: Ingrese la edad de la persona entre 18 y 80 años.
+    - **Colesterol**: Ingrese el valor del colesterol entre 50 y 600.
+    - **Predicción**: Después de ingresar los valores, seleccione la pestaña de 'Predicción' para obtener el diagnóstico.
+    - El modelo ha sido entrenado utilizando un clasificador KNN (K-Nearest Neighbors) y los datos han sido normalizados previamente utilizando MinMaxScaler de scikit-learn.
+    """)
 
-# Variables globales para almacenar los datos de entrada
-datos_usuario = None
+# Crear los tabs para capturar datos y hacer la predicción
+tabs = st.radio("Selecciona una pestaña", ["Capturar Datos", "Predicción"])
 
-with tab_captura:
-    st.header("Captura de Datos")
-    
-    # Solicitar al usuario que ingrese los datos
-    edad = st.slider('Edad', 18, 80, 25)
-    colesterol = st.slider('Colesterol', 50, 600, 200)
-    
-    # Botón para guardar los datos de entrada
-    if st.button("Guardar Datos"):
-        # Crear un DataFrame con los datos ingresados
-        datos_usuario = pd.DataFrame([[edad, colesterol]], columns=columnas)
-        st.success("Datos guardados correctamente. Ahora puedes ir a la predicción.")
+# Pestaña de Capturar Datos
+if tabs == "Capturar Datos":
+    st.header("Capturar datos de entrada")
 
-with tab_prediccion:
-    st.header("Predicción")
-    
-    # Verificar si el usuario ha ingresado los datos antes
-    if datos_usuario is not None:
-        # Normalizar los datos de entrada
-        datos_normalizados = escalador.transform(datos_usuario)
-        
-        # Hacer la predicción con el modelo KNN
+    # Entradas del usuario
+    edad = st.slider("Edad", 18, 80, 30)
+    colesterol = st.slider("Colesterol", 50, 600, 150)
+
+    # Guardar los datos en el session state
+    st.session_state.edad = edad
+    st.session_state.colesterol = colesterol
+
+    st.write("Haz clic en la pestaña 'Predicción' para obtener el diagnóstico.")
+
+# Pestaña de Predicción
+elif tabs == "Predicción":
+    if 'edad' in st.session_state and 'colesterol' in st.session_state:
+        st.header("Resultado de la Predicción")
+
+        # Crear un DataFrame con los mismos nombres de las columnas que el modelo espera
+        datos_entrada = pd.DataFrame({
+            'edad': [st.session_state.edad],
+            'colesterol': [st.session_state.colesterol]
+        })
+
+        # Normalizamos los datos de entrada
+        datos_normalizados = escalador.transform(datos_entrada)
+
+        # Realizamos la predicción
         prediccion = modelo_knn.predict(datos_normalizados)
-        
+
+        # Mostrar el resultado de la predicción
         if prediccion == 1:
-            # Si tiene problema cardíaco
-            st.write("**¡Alerta!** La predicción indica que la persona tiene problemas cardíacos.")
-            imagen = Image.open('https://blog.clinicainternacional.com.pe/wp-content/uploads/2017/11/clinica-internacional-ataque-corazon-sintomas-causas.jpg')
-            st.image(imagen, caption="Posibles síntomas de un ataque cardíaco", use_column_width=True)
+            st.write("**Diagnóstico: Tiene problema cardíaco.**")
+            # Descargar y mostrar la imagen de problema cardíaco
+            url_imagen = "https://www.clikisalud.net/wp-content/uploads/2018/09/problemas-cardiacos-jovenes.jpg"
+            respuesta = requests.get(url_imagen)
+            img = Image.open(BytesIO(respuesta.content))
+            st.image(img, caption="Problema cardíaco", use_column_width=True)
         else:
-            # Si no tiene problema cardíaco
-            st.write("**¡Todo está bien!** La predicción indica que la persona no tiene problemas cardíacos.")
-            imagen = Image.open('https://e7.pngegg.com/pngimages/270/467/png-clipart-smiley-heart-emoticon-sticker-tire-love-miscellaneous.png')
-            st.image(imagen, caption="Estado saludable", use_column_width=True)
+            st.write("**Diagnóstico: No tiene problema cardíaco.**")
+            # Descargar y mostrar la imagen de salud
+            url_imagen = "https://previews.123rf.com/images/yatate10/yatate101901/yatate10190100019/125884416-el-ni%C3%B1o-sano-refleja-el-ataque-de-bacterias-estilo-de-vida-saludable.jpg"
+            respuesta = requests.get(url_imagen)
+            img = Image.open(BytesIO(respuesta.content))
+            st.image(img, caption="Salud excelente", use_column_width=True)
     else:
-        st.write("Por favor, ingresa los datos en el tab de 'Captura de Datos' para obtener la predicción.")
+        st.warning("Por favor, captura los datos de entrada en la pestaña 'Capturar Datos' antes de realizar la predicción.")
