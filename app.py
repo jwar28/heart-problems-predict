@@ -60,7 +60,7 @@ with tab_prediccion:
         else:
             # Si no tiene problema cardíaco
             st.write("**¡Todo está bien!** La predicción indica que la persona no tiene problemas cardíacos.")
-            imagen = Image.open('https://i.pinimg.com/236x/6d/c2/2d/6dc22d8209b08c7403080e9769cd6584.jpg')
+            imagen = Image.open('https://e7.pngegg.com/pngimages/270/467/png-clipart-smiley-heart-emoticon-sticker-tire-love-miscellaneous.png')
             st.image(imagen, caption="Estado saludable", use_column_width=True)
     else:
         st.write("Por favor, ingresa los datos en el tab de 'Captura de Datos' para obtener la predicción.")
